@@ -1,0 +1,3 @@
+issue type definition: https://portswigger.net/kb/issues
+severity: High Medium Low Information
+confidence: Certain Firm Tentative

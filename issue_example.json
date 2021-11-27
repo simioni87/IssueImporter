@@ -1,0 +1,20 @@
+{
+	"issues": [
+		{
+			"url": "https://protect7.com",
+			"name": "name",
+			"type": "0x08000000",
+			"severity": "High",
+			"confidence": "Certain",
+			"issueBackground": "issueBackground",
+			"remediationBackground": "remediationBackground",
+			"issueDetail": "issueDetail",
+			"httpMessages": [
+				{
+					"request": "request",
+					"response": "response"
+				}
+			]
+		}
+	]
+}
