@@ -2,7 +2,11 @@ package service;
 
 import java.awt.Component;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.Scanner;
 import javax.swing.JFileChooser;
 import com.google.gson.JsonArray;
@@ -11,6 +15,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import burp.BurpExtender;
 import burp.IHttpRequestResponse;
+import burp.IHttpService;
+import entity.HttpService;
 import entity.Issue;
 import entity.Message;
 import util.Helper;
@@ -34,47 +40,76 @@ public class JsonImporter {
 					}
 					scanner.close();
 					parseJson(jsonString);
+					Helper.showInfoMessage(parentComponent, "Issues Successfully Imported");
 				} catch (Exception e) {
-					Helper.showErrorMessage(parentComponent, "Can not read File");
+					StringWriter sw = new StringWriter();
+					PrintWriter pw = new PrintWriter(sw);
+					e.printStackTrace(pw);
+					Helper.showErrorMessage(parentComponent, "Invalid JSON File\n" + sw.toString());
 				}
 			}
 		}
 	}
 	
-	private void parseJson(String jsonString) {
-		try {
-			BurpExtender.callbacks.printOutput(jsonString);
-			JsonArray issueArray = JsonParser.parseString(jsonString)
-					.getAsJsonObject()
-					.get("issues")
-					.getAsJsonArray();
-			for(JsonElement el : issueArray) {
-				JsonObject issueObject = el.getAsJsonObject();
-				Issue issue = new Issue();
-				issue.setUrl(new URL(issueObject.get("url").getAsString()));
-				issue.setName(issueObject.get("name").getAsString());
-				issue.setType(issueObject.get("type").getAsInt());
-				issue.setSeverity(issueObject.get("severity").getAsString());
-				issue.setConfidence(issueObject.get("confidence").getAsString());
-				issue.setIssueBackground(issueObject.get("issueBackground").getAsString());
-				issue.setRemediationBackground(issueObject.get("remediationBackground").getAsString());
-				issue.setIssueDetail(issueObject.get("issueDetail").getAsString());
-				issue.setRemediationDetail(issueObject.get("remediationDetail").getAsString());
-				JsonArray messageArray = issueObject.get("httpMessages").getAsJsonArray();
-				IHttpRequestResponse[] messages = new IHttpRequestResponse[messageArray.size()];
-				for(int i=0; i<messageArray.size(); i++) {
-					JsonObject messageObject = messageArray.get(i).getAsJsonObject();
-					BurpExtender.callbacks.printOutput("asdasd");
-					messages[i] = new Message(messageObject.get("request").getAsString(), messageObject.get("response").getAsString());
+	private void parseJson(String jsonString) throws MalformedURLException {
+		BurpExtender.callbacks.printOutput(jsonString);
+		JsonArray issueArray = JsonParser.parseString(jsonString)
+				.getAsJsonObject()
+				.get("issues")
+				.getAsJsonArray();
+		for(JsonElement el : issueArray) {
+			JsonObject issueObject = el.getAsJsonObject();
+			Issue issue = new Issue();
+			if(getStringValue(issueObject, "url") == null) {
+				issue.setUrl(null);
+			}
+			else {
+				issue.setUrl(new URL(getStringValue(issueObject, "url")));
+			}
+			issue.setName(getStringValue(issueObject, "name"));
+			issue.setType(getIntValue(issueObject, "type"));
+			issue.setSeverity(getStringValue(issueObject, "severity"));
+			issue.setConfidence(getStringValue(issueObject, "confidence"));
+			issue.setIssueBackground(getStringValue(issueObject, "issueBackground"));
+			issue.setRemediationBackground(getStringValue(issueObject, "remediationBackground"));
+			issue.setIssueDetail(getStringValue(issueObject, "issueDetail"));
+			issue.setRemediationDetail(getStringValue(issueObject, "remediationDetail"));
+			JsonArray messageArray = issueObject.get("httpMessages").getAsJsonArray();
+			IHttpRequestResponse[] messages = new IHttpRequestResponse[messageArray.size()];
+			for(int i=0; i<messageArray.size(); i++) {
+				JsonObject messageObject = messageArray.get(i).getAsJsonObject();
+				if(messageObject.get("requestBase64") != null && messageObject.get("responseBase64") != null) {
+					byte[] request = Base64.getDecoder().decode(messageObject.get("requestBase64").getAsString());
+					byte[] response = Base64.getDecoder().decode(messageObject.get("responseBase64").getAsString());
+					IHttpService httpService = new HttpService(getStringValue(messageObject, "host"), 
+							getIntValue(messageObject, "port"), getStringValue(messageObject, "protocol"));
+					messages[i] = new Message(request, response, httpService);
 				}
-				
-				issue.setHttpMessages(messages);
-				BurpExtender.callbacks.printOutput("bbb");//issue hat http service null
-				BurpExtender.callbacks.addScanIssue(issue);
-			} 
+			}
+			issue.setHttpMessages(messages);
+			IHttpService httpService = new HttpService(getStringValue(issueObject, "host"), 
+					getIntValue(issueObject, "port"), getStringValue(issueObject, "protocol"));
+			issue.setHttpService(httpService);
+			BurpExtender.callbacks.addScanIssue(issue);
+		} 
+		
+	}
+	
+	private String getStringValue(JsonObject object, String key) {
+		if(object.get(key) != null && object.get(key).isJsonPrimitive()) {
+			return object.get(key).getAsString();
 		}
-		catch (Exception e) {
-			Helper.showErrorMessage(parentComponent, "Invalid JSON File\n" + e.getMessage());
+		else {
+			return null;
+		}
+	}
+	
+	private int getIntValue(JsonObject object, String key) {
+		if(object.get(key) != null && object.get(key).isJsonPrimitive()) {
+			return object.get(key).getAsInt();
+		}
+		else {
+			return 0;
 		}
 	}
 }

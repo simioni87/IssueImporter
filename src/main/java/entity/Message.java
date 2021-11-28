@@ -5,12 +5,14 @@ import burp.IHttpService;
 
 public class Message implements IHttpRequestResponse {
 	
-	final byte[] request;
-	final byte[] response;
+	private final byte[] request;
+	private final byte[] response;
+	private final IHttpService httpService;
 	
-	public Message(String request, String response) {
-		this.request = request.getBytes();
-		this.response = response.getBytes();
+	public Message(byte[] request, byte[] response, IHttpService httpService) {
+		this.request = request;
+		this.response = response;
+		this.httpService = httpService;
 	}
 
 	public byte[] getRequest() {
@@ -38,7 +40,7 @@ public class Message implements IHttpRequestResponse {
 	public void setHighlight(String color) {}
 
 	public IHttpService getHttpService() {
-		return null;
+		return httpService;
 	}
 
 	public void setHttpService(IHttpService httpService) {		

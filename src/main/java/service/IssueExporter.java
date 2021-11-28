@@ -33,6 +33,7 @@ public class IssueExporter {
 					FileWriter writer = new FileWriter(file);
 					writer.write(getJson(issues).toString());
 					writer.close();
+					Helper.showInfoMessage(parentComponent, "Successfully Exported");
 				} catch (IOException e) {
 					Helper.showErrorMessage(parentComponent, e.getMessage());
 				}
@@ -70,10 +71,19 @@ public class IssueExporter {
 				if(message.getResponse() != null) {
 					base64Response = new String(Base64.getEncoder().encode(message.getResponse()));
 				}
-				JsonObject messageObject = new JsonObject();
-				messageObject.addProperty("requestBase64", base64Request);
-				messageObject.addProperty("responseBase64", base64Response);
-				messageArray.add(messageObject);
+				String host = message.getHttpService().getHost();
+				int port = message.getHttpService().getPort();
+				String protocol = message.getHttpService().getProtocol();
+				if(base64Request != null && base64Response != null && host != null && protocol != null) {
+					JsonObject messageObject = new JsonObject();
+					messageObject.addProperty("host", host);
+					messageObject.addProperty("port", port);
+					messageObject.addProperty("protocol", protocol);
+					messageObject.addProperty("requestBase64", base64Request);
+					messageObject.addProperty("responseBase64", base64Response);
+					messageArray.add(messageObject);
+				}
+				
 			}
 		}
 		return mainObject;

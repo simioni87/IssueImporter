@@ -6,7 +6,7 @@ import burp.IHttpRequestResponse;
 import burp.IHttpService;
 import burp.IScanIssue;
 
-public class Issue implements IScanIssue{
+public class Issue implements IScanIssue {
 	
 	private IHttpService httpService = null;
 	private URL url = null;
