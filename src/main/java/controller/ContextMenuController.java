@@ -12,26 +12,13 @@ import burp.IContextMenuFactory;
 import burp.IContextMenuInvocation;
 import service.IssueExporter;
 import service.JsonImporter;
+import service.TestsslImporter;
 import util.Globals;
 
 public class ContextMenuController implements IContextMenuFactory {
 
 	public List<JMenuItem> createMenuItems(final IContextMenuInvocation invocation) {
 		List<JMenuItem> menuItems = new ArrayList<JMenuItem>();
-		/*if(invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TREE && invocation.getSelectedMessages().length > 0) {
-			JMenu issueImporterMenu = new JMenu(Globals.EXTENSION_NAME);
-			menuItems.add(issueImporterMenu);
-			JMenuItem importJsonItem = new JMenuItem("Import from JSON");
-			importJsonItem.addActionListener(new ActionListener() {
-				
-				public void actionPerformed(ActionEvent e) {
-					new JsonImporter(invocation.getSelectedMessages()[0]);
-				}
-			});
-			issueImporterMenu.add(importJsonItem);
-			
-		}*/
-		
 		JMenu issueImporterMenu = new JMenu(Globals.EXTENSION_NAME);
 		menuItems.add(issueImporterMenu);
 		
@@ -43,6 +30,15 @@ public class ContextMenuController implements IContextMenuFactory {
 			}
 		});
 		issueImporterMenu.add(importJsonItem);
+		
+		JMenuItem importTestsslItem = new JMenuItem("Import from Testssl (JSON Format)");
+		importTestsslItem.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				new TestsslImporter();
+			}
+		});
+		issueImporterMenu.add(importTestsslItem);
 		
 		JMenuItem exportIssueItem = new JMenuItem("Export Issue(s)");
 		exportIssueItem.addActionListener(new ActionListener() {

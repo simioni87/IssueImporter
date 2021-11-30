@@ -42,17 +42,16 @@ public class JsonImporter {
 					parseJson(jsonString);
 					Helper.showInfoMessage(parentComponent, "Issues Successfully Imported");
 				} catch (Exception e) {
-					StringWriter sw = new StringWriter();
+					/*StringWriter sw = new StringWriter();
 					PrintWriter pw = new PrintWriter(sw);
-					e.printStackTrace(pw);
-					Helper.showErrorMessage(parentComponent, "Invalid JSON File\n" + sw.toString());
+					e.printStackTrace(pw);*/
+					Helper.showErrorMessage(parentComponent, "Invalid JSON File\n" + e.getMessage());
 				}
 			}
 		}
 	}
 	
 	private void parseJson(String jsonString) throws MalformedURLException {
-		BurpExtender.callbacks.printOutput(jsonString);
 		JsonArray issueArray = JsonParser.parseString(jsonString)
 				.getAsJsonObject()
 				.get("issues")
@@ -67,7 +66,7 @@ public class JsonImporter {
 				issue.setUrl(new URL(getStringValue(issueObject, "url")));
 			}
 			issue.setName(getStringValue(issueObject, "name"));
-			issue.setType(getIntValue(issueObject, "type"));
+			issue.setType(getIntValue(issueObject, "type"));//https://portswigger.net/kb/issues
 			issue.setSeverity(getStringValue(issueObject, "severity"));
 			issue.setConfidence(getStringValue(issueObject, "confidence"));
 			issue.setIssueBackground(getStringValue(issueObject, "issueBackground"));
